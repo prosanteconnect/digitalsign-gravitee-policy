@@ -1,0 +1,5 @@
+{
+  "type" : "object",
+  "id" : "urn:jsonschema:fr:ans:psc:DigitalSignPolicyConfiguration",
+  "properties" : {}
+}
