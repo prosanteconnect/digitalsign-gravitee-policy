@@ -1,5 +1,11 @@
 {
   "type" : "object",
   "id" : "urn:jsonschema:fr:ans:psc:DigitalSignPolicyConfiguration",
-  "properties" : {}
+  "properties" : {
+    "resourceName" : {
+      "title": "Digital Signature Server Resource",
+      "description" : "Ressource de serveur de signature",
+      "type" : "string"
+    }
+  }
 }
