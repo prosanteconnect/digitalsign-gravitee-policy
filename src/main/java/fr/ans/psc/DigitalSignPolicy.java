@@ -9,7 +9,9 @@ import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnResponse;
 import io.gravitee.resource.api.ResourceManager;
+import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;
+import io.reactivex.rxjava3.core.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,22 +31,23 @@ public class DigitalSignPolicy {
     }
 
     @OnRequest
-    public void onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
+    public Completable onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) throws IOException {
 
-        try {
-            String docToSignAsString = (String) executionContext.getAttribute("digitalsign.payload");
+//        try {
+            String docToSignAsString = (String) executionContext.getAttribute(configuration.getDocToSignRef());
             File docToSignFile = encapsulateDocToSign(docToSignAsString);
 
-
             // getResource
+            DigitalSignResource signingResource = getDigitalSignResource(executionContext);
 
             // call resource and get signed doc
+            return handleSignature(executionContext, configuration, docToSignFile, policyChain);
             // put signed doc in gravitee context
 
-            policyChain.doNext(request, response);
-        } catch (Exception e) {
-            policyChain.failWith(PolicyResult.failure("Something went wrong with doc signing, please contact your administrator"));
-        }
+//            policyChain.doNext(request, response);
+//        } catch (Exception e) {
+//            policyChain.failWith(PolicyResult.failure("Something went wrong with doc signing, please contact your administrator"));
+//        }
     }
 
     @OnResponse
@@ -78,7 +81,6 @@ public class DigitalSignPolicy {
         return docToSignFile;
     }
 
-
     private DigitalSignResource getDigitalSignResource(ExecutionContext ctx) {
 
         if (configuration.getResourceName() == null) {
@@ -90,5 +92,24 @@ public class DigitalSignPolicy {
                         ctx.getTemplateEngine().getValue(configuration.getResourceName(), String.class),
                         DigitalSignResource.class
                 );
+    }
+
+    private @NonNull Completable handleSignature(ExecutionContext ctx, DigitalSignPolicyConfiguration configuration, File docFile, PolicyChain policyChain) {
+        DigitalSignResource signingResource = getDigitalSignResource(ctx);
+        assert signingResource != null;
+
+        Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter -> signingResource.signWithXmldsig(docFile, emitter::onSuccess));
+
+        return Completable.fromSingle(digitalSignResponse.doOnSuccess(response -> {
+            if (response.isSuccess()) {
+                String jsonReport = response.getPayload();
+                // TODO extract signed doc
+                String signedDoc = "";
+                ctx.setAttribute(configuration.getDocToSignRef(), signedDoc);
+                policyChain.doNext(ctx.request(), ctx.response());
+            } else {
+                policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
+            }
+        }));
     }
 }
