@@ -7,6 +7,7 @@
     <groupId>fr.ans.psc</groupId>
     <artifactId>digitalsign-gravitee-policy</artifactId>
     <version>1.0-SNAPSHOT</version>
+    <description>Digital Signature Gravitee Policy</description>
 
     <properties>
         <java.version>11</java.version>
