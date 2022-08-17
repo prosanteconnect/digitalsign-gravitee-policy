@@ -6,7 +6,7 @@ public class DigitalSignPolicyConfiguration implements PolicyConfiguration {
 
     private String resourceName;
 
-    private String docToSignRef;
+    private String docToSignKey;
 
     public String getResourceName() {
         return resourceName;
@@ -16,11 +16,11 @@ public class DigitalSignPolicyConfiguration implements PolicyConfiguration {
         this.resourceName = resourceName;
     }
 
-    public String getDocToSignRef() {
-        return docToSignRef;
+    public String getDocToSignKey() {
+        return docToSignKey;
     }
 
-    public void setDocToSignRef(String docToSignRef) {
-        this.docToSignRef = docToSignRef;
+    public void setDocToSignKey(String docToSignKey) {
+        this.docToSignKey = docToSignKey;
     }
 }

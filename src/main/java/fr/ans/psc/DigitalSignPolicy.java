@@ -34,7 +34,7 @@ public class DigitalSignPolicy {
         File docToSignFile = null;
         byte[] docToSignBytes = null;
         try {
-            String docToSignAsString = (String) executionContext.getAttribute(configuration.getDocToSignRef());
+            String docToSignAsString = (String) executionContext.getAttribute(configuration.getDocToSignKey());
 //            docToSignFile = encapsulateDocToSign(docToSignAsString);
             docToSignBytes = docToSignAsString.getBytes(StandardCharsets.UTF_8);
 
@@ -102,7 +102,7 @@ public class DigitalSignPolicy {
                 String jsonReport = response.getPayload();
                 // TODO extract signed doc
                 String signedDoc = "";
-                ctx.setAttribute(configuration.getDocToSignRef(), signedDoc);
+                ctx.setAttribute(configuration.getDocToSignKey(), signedDoc);
                 policyChain.doNext(ctx.request(), ctx.response());
             } else {
                 policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));

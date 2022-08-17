@@ -3,9 +3,16 @@
   "id" : "urn:jsonschema:fr:ans:psc:DigitalSignPolicyConfiguration",
   "properties" : {
     "resourceName" : {
-      "title": "Digital Signature Server Resource",
-      "description" : "Ressource de serveur de signature",
-      "type" : "string"
+      "title" : "Digital Signature Server",
+      "description" :  "Resource de Serveur de signature",
+      "type" : "string",
+      "default" : ""
+    },
+    "docToSignKey" : {
+      "title" : "Document à signer",
+      "description" :  "Clé du document à signer à requêter dans le contexte Gravitee",
+      "type" : "string",
+      "default" : ""
     }
   }
 }
