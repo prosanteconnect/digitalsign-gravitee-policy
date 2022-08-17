@@ -9,16 +9,14 @@ import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnResponse;
 import io.gravitee.resource.api.ResourceManager;
-import io.reactivex.rxjava3.annotations.NonNull;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class DigitalSignPolicy {
 
@@ -33,21 +31,20 @@ public class DigitalSignPolicy {
     @OnRequest
     public Completable onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) throws IOException {
 
-//        try {
+        File docToSignFile = null;
+        byte[] docToSignBytes = null;
+        try {
             String docToSignAsString = (String) executionContext.getAttribute(configuration.getDocToSignRef());
-            File docToSignFile = encapsulateDocToSign(docToSignAsString);
-
-            // getResource
-            DigitalSignResource signingResource = getDigitalSignResource(executionContext);
-
-            // call resource and get signed doc
-            return handleSignature(executionContext, configuration, docToSignFile, policyChain);
-            // put signed doc in gravitee context
+//            docToSignFile = encapsulateDocToSign(docToSignAsString);
+            docToSignBytes = docToSignAsString.getBytes(StandardCharsets.UTF_8);
 
 //            policyChain.doNext(request, response);
-//        } catch (Exception e) {
-//            policyChain.failWith(PolicyResult.failure("Something went wrong with doc signing, please contact your administrator"));
-//        }
+        } catch (Exception e) {
+            policyChain.failWith(PolicyResult.failure("Something went wrong with doc signing, please contact your administrator"));
+        }
+        // call resource and get signed doc
+        return handleSignature(executionContext, configuration, docToSignBytes, policyChain);
+        // put signed doc in gravitee context
     }
 
     @OnResponse
@@ -72,14 +69,14 @@ public class DigitalSignPolicy {
         }
     }
 
-    private File encapsulateDocToSign(String docToSign) throws IOException {
-        File docToSignFile = new File("doctosign.txt");
-        BufferedWriter writer = new BufferedWriter(new FileWriter(docToSignFile));
-        writer.write(docToSign);
-        writer.close();
-
-        return docToSignFile;
-    }
+//    private File encapsulateDocToSign(String docToSign) throws IOException {
+//        File docToSignFile = new File("doctosign.txt");
+//        BufferedWriter writer = new BufferedWriter(new FileWriter(docToSignFile));
+//        writer.write(docToSign);
+//        writer.close();
+//
+//        return docToSignFile;
+//    }
 
     private DigitalSignResource getDigitalSignResource(ExecutionContext ctx) {
 
@@ -94,11 +91,11 @@ public class DigitalSignPolicy {
                 );
     }
 
-    private @NonNull Completable handleSignature(ExecutionContext ctx, DigitalSignPolicyConfiguration configuration, File docFile, PolicyChain policyChain) {
+    private Completable handleSignature(ExecutionContext ctx, DigitalSignPolicyConfiguration configuration, byte[] docToSignBytes, PolicyChain policyChain) {
         DigitalSignResource signingResource = getDigitalSignResource(ctx);
         assert signingResource != null;
 
-        Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter -> signingResource.signWithXmldsig(docFile, emitter::onSuccess));
+        Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter -> signingResource.signWithXmldsig(docToSignBytes, emitter::onSuccess));
 
         return Completable.fromSingle(digitalSignResponse.doOnSuccess(response -> {
             if (response.isSuccess()) {
