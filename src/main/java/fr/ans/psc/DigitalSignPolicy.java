@@ -74,11 +74,12 @@ public class DigitalSignPolicy {
         if (configuration.getResourceName() == null) {
             return null;
         }
-        return ctx
+        return (DigitalSignResource) ctx
                 .getComponent(ResourceManager.class)
                 .getResource(
-                        ctx.getTemplateEngine().getValue(configuration.getResourceName(), String.class),
-                        DigitalSignResource.class
+                        ctx.getTemplateEngine().getValue(configuration.getResourceName(), String.class)
+//                        ,
+//                        DigitalSignResource.class
                 );
     }
 
