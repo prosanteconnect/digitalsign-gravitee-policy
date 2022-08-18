@@ -1,0 +1,39 @@
+= Esignsante Gravitee Policy
+
+
+== Description
+
+La policy Esignsante Gravitee est conçue pour signer un document via le serveur de signature Esignsante.
+
+Cette policy requête un document dans le contexte Gravitee, pour le transmettre au serveur. Elle implique le paramétrage d'une ressource DigitalSign pointant vers celui-ci.
+
+En sortie, le document signé est mis à disposition dans le contexte Gravitee.
+
+== Compatibilité avec Gravitee API Management
+
+|===
+|Version du plugin | Version APIM
+
+|1.0 and upper  | 3.18.x to latest
+|===
+
+== Configuration
+
+La policy nécessite de configurer les paramètres suivants :
+
+|===
+| Paramètre | Requis    | Description   | Type  | Défaut
+
+.^|Digital Signature Server Resource
+^.^|Oui
+| Le nom de la ressource DigitalSign configurant l'accès au serveur de signature.
+^.^|chaîne de caractères
+^.^|-
+
+.^|Document à signer
+^.^|Oui
+| La clé sous laquelle le document à signer sera requêté dans le contexte Gravitee. Une fois signé, le document sera mis à disposition dans le contexte sous la même clé préfixée par "signed."
+^.^|chaîne de caractères
+^.^|-
+
+|===
