@@ -60,6 +60,7 @@
             <groupId>fr.ans.psc</groupId>
             <artifactId>digitalsign-gravitee-resource</artifactId>
             <version>1.0-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
