@@ -36,16 +36,15 @@ public class DigitalSignPolicy {
         byte[] docToSignBytes = null;
         try {
             String docToSignAsString = (String) executionContext.getAttribute(configuration.getDocToSignKey());
-//            docToSignFile = encapsulateDocToSign(docToSignAsString);
+            // TODO remove debug logs
+            System.out.println("doc to sign :");
+            System.out.println(docToSignAsString);
             docToSignBytes = docToSignAsString.getBytes(StandardCharsets.UTF_8);
-
-//            policyChain.doNext(request, response);
         } catch (Exception e) {
             policyChain.failWith(PolicyResult.failure("Something went wrong with doc signing, please contact your administrator"));
         }
-        // call resource and get signed doc
         return handleSignature(executionContext, configuration, docToSignBytes, policyChain);
-        // put signed doc in gravitee context
+
     }
 
     @OnResponse
@@ -70,26 +69,16 @@ public class DigitalSignPolicy {
         }
     }
 
-//    private File encapsulateDocToSign(String docToSign) throws IOException {
-//        File docToSignFile = new File("doctosign.txt");
-//        BufferedWriter writer = new BufferedWriter(new FileWriter(docToSignFile));
-//        writer.write(docToSign);
-//        writer.close();
-//
-//        return docToSignFile;
-//    }
-
     private DigitalSignResource getDigitalSignResource(ExecutionContext ctx) {
 
         if (configuration.getResourceName() == null) {
             return null;
         }
-        return (DigitalSignResource) ctx
+        return ctx
                 .getComponent(ResourceManager.class)
                 .getResource(
-                        ctx.getTemplateEngine().getValue(configuration.getResourceName(), String.class)
-//                        ,
-//                        DigitalSignResource.class
+                        ctx.getTemplateEngine().getValue(configuration.getResourceName(), String.class),
+                        DigitalSignResource.class
                 );
     }
 
@@ -101,12 +90,16 @@ public class DigitalSignPolicy {
 
         return Completable.fromSingle(digitalSignResponse.doOnSuccess(response -> {
             if (response.isSuccess()) {
+                //TODO rm debug log
+                System.out.println("signing successful");
                 String jsonReport = response.getPayload();
                 // TODO extract signed doc
                 String signedDoc = "";
                 ctx.setAttribute(configuration.getDocToSignKey(), signedDoc);
                 policyChain.doNext(ctx.request(), ctx.response());
             } else {
+                //TODO rm debug log
+                System.out.println("signing unsuccessful");
                 policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
             }
         }));
