@@ -6,6 +6,13 @@
       "title" : "Digital Signature Server",
       "description" :  "Resource de Serveur de signature",
       "type" : "string",
+      "x-schema-form": {
+        "event": {
+          "name": "fetch-resources",
+          "regexTypes": "^digitalsign"
+        },
+        "placeholder": "digital-signature-resource-name"
+      },
       "default" : ""
     },
     "docToSignKey" : {
