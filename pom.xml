@@ -68,6 +68,12 @@
             <version>3.1.5</version>
         </dependency>
 
+        <dependency>
+            <groupId>io.gravitee.apim.gateway</groupId>
+            <artifactId>gravitee-apim-gateway-resource</artifactId>
+            <version>3.15.9</version>
+        </dependency>
+
         <!-- Test scope -->
         <dependency>
             <groupId>junit</groupId>
