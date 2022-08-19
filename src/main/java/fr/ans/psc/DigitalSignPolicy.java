@@ -4,7 +4,6 @@ import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
-import io.gravitee.gateway.resource.internal.legacy.LegacyResourceManagerImpl;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.policy.api.annotations.OnRequest;
@@ -69,22 +68,21 @@ public class DigitalSignPolicy {
         }
     }
 
-    private DigitalSignResource getDigitalSignResource(ExecutionContext ctx) {
+    private DigitalSignResource<?> getDigitalSignResource(ExecutionContext ctx) {
 
         if (configuration.getResourceName() == null) {
             return null;
         }
-        return (DigitalSignResource) ctx
+        return ctx
                 .getComponent(ResourceManager.class)
                 .getResource(
-                        ctx.getTemplateEngine().getValue(configuration.getResourceName(), String.class)
-//                        ,
-//                        DigitalSignResource.class
+                        ctx.getTemplateEngine().getValue(configuration.getResourceName(), String.class),
+                        DigitalSignResource.class
                 );
     }
 
     private Completable handleSignature(ExecutionContext ctx, DigitalSignPolicyConfiguration configuration, byte[] docToSignBytes, PolicyChain policyChain) {
-        DigitalSignResource signingResource = getDigitalSignResource(ctx);
+        DigitalSignResource<?> signingResource = getDigitalSignResource(ctx);
         assert signingResource != null;
 
         Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter -> signingResource.signWithXmldsig(docToSignBytes, emitter::onSuccess));
