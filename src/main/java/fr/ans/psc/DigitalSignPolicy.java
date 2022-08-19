@@ -92,6 +92,10 @@ public class DigitalSignPolicy {
             policyChain.failWith(PolicyResult.failure("No Signing resource named " + configuration.getResourceName() + " available"));
         }
 
+        System.out.println("calling resource...");
+        signingResource.signWithXmldsig(docToSignBytes, digitalSignResponse -> {
+            System.out.println("result = " + digitalSignResponse.isSuccess());
+        });
         Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter -> signingResource.signWithXmldsig(docToSignBytes, emitter::onSuccess));
 
         return Completable.fromSingle(digitalSignResponse.doOnSuccess(response -> {
