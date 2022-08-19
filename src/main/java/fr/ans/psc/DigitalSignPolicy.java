@@ -11,6 +11,7 @@ import io.gravitee.policy.api.annotations.OnResponse;
 import io.gravitee.resource.api.ResourceManager;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
+import io.reactivex.rxjava3.disposables.Disposable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,7 +30,7 @@ public class DigitalSignPolicy {
     }
 
     @OnRequest
-    public Completable onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) throws IOException {
+    public Disposable onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) throws IOException {
 
         File docToSignFile = null;
         byte[] docToSignBytes = null;
@@ -42,7 +43,7 @@ public class DigitalSignPolicy {
         } catch (Exception e) {
             policyChain.failWith(PolicyResult.failure("Something went wrong with doc signing, please contact your administrator"));
         }
-        return handleSignature(executionContext, configuration, docToSignBytes, policyChain);
+        return handleSignature(executionContext, configuration, docToSignBytes, policyChain).subscribe();
 
     }
 
