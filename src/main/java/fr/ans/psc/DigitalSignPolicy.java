@@ -83,6 +83,8 @@ public class DigitalSignPolicy {
 
     private Completable handleSignature(ExecutionContext ctx, DigitalSignPolicyConfiguration configuration, byte[] docToSignBytes, PolicyChain policyChain) {
         DigitalSignResource<?> signingResource = getDigitalSignResource(ctx);
+        //TODO rm debug log
+        System.out.println(signingResource == null ? "DIGITAL SIGN RESOURCE IS NULL" : signingResource.name());
         assert signingResource != null;
 
         Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter -> signingResource.signWithXmldsig(docToSignBytes, emitter::onSuccess));
