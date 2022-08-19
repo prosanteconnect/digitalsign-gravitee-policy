@@ -87,7 +87,7 @@ public class DigitalSignPolicy {
     private Completable handleSignature(ExecutionContext ctx, DigitalSignPolicyConfiguration configuration, byte[] docToSignBytes, PolicyChain policyChain) {
         DigitalSignResource<?> signingResource = getDigitalSignResource(ctx);
         //TODO rm debug log
-        System.out.println(signingResource == null ? "DIGITAL SIGN RESOURCE IS NULL" : "SIGN RESOURCE NAME IS " + signingResource.name());
+        System.out.println(signingResource == null ? "DIGITAL SIGN RESOURCE IS NULL" : "SIGN RESOURCE IS NOT NULL");
         if (signingResource == null) {
             policyChain.failWith(PolicyResult.failure("No Signing resource named " + configuration.getResourceName() + " available"));
         }
