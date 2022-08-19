@@ -73,6 +73,8 @@ public class DigitalSignPolicy {
         if (configuration.getResourceName() == null) {
             return null;
         }
+        //TODO rm debug log
+        System.out.println("configuration.getREsName = " + configuration.getResourceName());
         return ctx
                 .getComponent(ResourceManager.class)
                 .getResource(
