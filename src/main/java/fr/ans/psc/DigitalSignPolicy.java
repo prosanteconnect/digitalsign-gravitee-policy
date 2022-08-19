@@ -43,7 +43,9 @@ public class DigitalSignPolicy {
         } catch (Exception e) {
             policyChain.failWith(PolicyResult.failure("Something went wrong with doc signing, please contact your administrator"));
         }
-        return handleSignature(executionContext, configuration, docToSignBytes, policyChain).subscribe();
+        return handleSignature(executionContext, configuration, docToSignBytes, policyChain).subscribe(
+                () -> policyChain.doNext(request, response),
+                error -> policyChain.failWith(PolicyResult.failure("something wrong happened")));
 
     }
 
@@ -96,6 +98,8 @@ public class DigitalSignPolicy {
         System.out.println("calling resource...");
         signingResource.signWithXmldsig(docToSignBytes, digitalSignResponse -> {
             System.out.println("result = " + digitalSignResponse.isSuccess());
+            System.out.println("rapport de signature :");
+            System.out.println(digitalSignResponse.getPayload());
         });
         Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter -> signingResource.signWithXmldsig(docToSignBytes, emitter::onSuccess));
 
