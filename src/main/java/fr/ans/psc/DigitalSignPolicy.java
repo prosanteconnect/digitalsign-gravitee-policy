@@ -74,7 +74,8 @@ public class DigitalSignPolicy {
             return null;
         }
         //TODO rm debug log
-        System.out.println("configuration.getREsName = " + configuration.getResourceName());
+        System.out.println("configuration.getResourceName = " + configuration.getResourceName());
+        System.out.println("template resource = " + ctx.getTemplateEngine().getValue(configuration.getResourceName(), String.class));
         return ctx
                 .getComponent(ResourceManager.class)
                 .getResource(
