@@ -110,7 +110,7 @@ public class DigitalSignPolicy {
                 String jsonReport = response.getPayload();
                 // TODO extract signed doc
                 String signedDoc = "";
-                ctx.setAttribute(configuration.getDocToSignKey(), signedDoc);
+                ctx.setAttribute(configuration.getDocToSignKey(), jsonReport);
                 policyChain.doNext(ctx.request(), ctx.response());
             } else {
                 //TODO rm debug log
