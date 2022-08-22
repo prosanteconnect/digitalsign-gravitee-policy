@@ -1,5 +1,7 @@
 package fr.ans.psc;
 
+import com.google.gson.Gson;
+import fr.ans.psc.esignsante.model.EsignSanteSignatureReport;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -107,9 +109,11 @@ public class DigitalSignPolicy {
             if (response.isSuccess()) {
                 //TODO rm debug log
                 System.out.println("signing successful");
+                Gson gson = new Gson();
                 String jsonReport = response.getPayload();
+                EsignSanteSignatureReport report = gson.fromJson(jsonReport, EsignSanteSignatureReport.class);
                 // TODO extract signed doc
-                String signedDoc = "";
+                String signedDoc = report.getDocSigne();
                 String signedDocKey = "signed." + configuration.getDocToSignKey();
                 ctx.setAttribute(signedDocKey, jsonReport);
                 policyChain.doNext(ctx.request(), ctx.response());
