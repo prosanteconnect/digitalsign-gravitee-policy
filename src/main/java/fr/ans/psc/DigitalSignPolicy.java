@@ -113,14 +113,14 @@ public class DigitalSignPolicy {
                 Gson gson = new Gson();
                 String jsonReport = response.getPayload();
                 EsignSanteSignatureReport report = gson.fromJson(jsonReport, EsignSanteSignatureReport.class);
-//                // TODO extract signed doc
-//                String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne()));
-//
-//                System.out.println("CHECK THIS OUT :");
-//                System.out.println(signedDoc);
+                // TODO extract signed doc
+                String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne()));
+
+                System.out.println("CHECK THIS OUT :");
+                System.out.println(signedDoc);
 
                 String signedDocKey = "signed." + configuration.getDocToSignKey();
-                ctx.setAttribute(signedDocKey, report.getDocSigne());
+                ctx.setAttribute(signedDocKey, signedDoc);
                 policyChain.doNext(ctx.request(), ctx.response());
             } else {
                 //TODO rm debug log
