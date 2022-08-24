@@ -115,6 +115,10 @@ public class DigitalSignPolicy {
                 EsignSanteSignatureReport report = gson.fromJson(jsonReport, EsignSanteSignatureReport.class);
                 // TODO extract signed doc
                 String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne()));
+
+                System.out.println("CHECK THIS OUT :");
+                System.out.println(signedDoc);
+
                 String signedDocKey = "signed." + configuration.getDocToSignKey();
                 ctx.setAttribute(signedDocKey, signedDoc);
                 policyChain.doNext(ctx.request(), ctx.response());
