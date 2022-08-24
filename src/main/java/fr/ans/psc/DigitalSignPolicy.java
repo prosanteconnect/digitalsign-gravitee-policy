@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 
 public class DigitalSignPolicy {
 
@@ -113,7 +114,7 @@ public class DigitalSignPolicy {
                 String jsonReport = response.getPayload();
                 EsignSanteSignatureReport report = gson.fromJson(jsonReport, EsignSanteSignatureReport.class);
                 // TODO extract signed doc
-                String signedDoc = report.getDocSigne();
+                String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne()));
                 String signedDocKey = "signed." + configuration.getDocToSignKey();
                 ctx.setAttribute(signedDocKey, signedDoc);
                 policyChain.doNext(ctx.request(), ctx.response());
