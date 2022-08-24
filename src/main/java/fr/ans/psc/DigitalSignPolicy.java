@@ -127,7 +127,7 @@ public class DigitalSignPolicy {
                 System.out.println(cleanXML(signedDoc));
 
                 String signedDocKey = "signed." + configuration.getDocToSignKey();
-                ctx.setAttribute(signedDocKey, signedDoc);
+                ctx.setAttribute(signedDocKey, cleanXML(signedDoc));
                 policyChain.doNext(ctx.request(), ctx.response());
             } else {
                 //TODO rm debug log
