@@ -1,7 +1,9 @@
 package fr.ans.psc;
 
 import com.google.gson.Gson;
+import com.sun.org.apache.xerces.internal.parsers.XMLParser;
 import fr.ans.psc.esignsante.model.EsignSanteSignatureReport;
+import freemarker.core.OutputFormat;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -16,7 +18,11 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -116,8 +122,9 @@ public class DigitalSignPolicy {
                 // TODO extract signed doc
                 String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne()));
 
+
                 System.out.println("CHECK THIS OUT :");
-                System.out.println(signedDoc);
+                System.out.println(cleanXML(signedDoc));
 
                 String signedDocKey = "signed." + configuration.getDocToSignKey();
                 ctx.setAttribute(signedDocKey, signedDoc);
@@ -128,5 +135,14 @@ public class DigitalSignPolicy {
                 policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
             }
         }));
+    }
+
+    public static String cleanXML(String xml) {
+        if (xml == null) {
+            return xml;
+        } else {
+            return xml.replaceAll("(<!--.*-->)", "").replaceAll(
+                    "(<\\?xml.*\\?>)", "");
+        }
     }
 }
