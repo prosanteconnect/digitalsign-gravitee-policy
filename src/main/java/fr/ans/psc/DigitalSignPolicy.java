@@ -49,7 +49,8 @@ public class DigitalSignPolicy {
         }
         return handleSignature(executionContext, configuration, docToSignBytes, policyChain).subscribe(
                 () -> policyChain.doNext(request, response),
-                error -> policyChain.failWith(PolicyResult.failure("something wrong happened")));
+                error -> policyChain.failWith(PolicyResult.failure("something wrong happened"))
+        );
 
     }
 
