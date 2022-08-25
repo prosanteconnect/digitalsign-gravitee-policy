@@ -40,16 +40,16 @@ public class DigitalSignPolicy {
     public Disposable onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
 
         byte[] docToSignBytes = null;
-        try {
+//        try {
             String docToSignAsString = (String) executionContext.getAttribute(configuration.getDocToSignKey());
             log.debug(docToSignAsString);
             docToSignBytes = docToSignAsString.getBytes(StandardCharsets.UTF_8);
-        } catch (Exception e) {
-            policyChain.failWith(PolicyResult.failure("Something went wrong with doc signing, please contact your administrator"));
-        }
+//        } catch (Exception e) {
+//            policyChain.failWith(PolicyResult.failure("Something went wrong with doc signing, please contact your administrator"));
+//        }
         return handleSignature(executionContext, configuration, docToSignBytes, policyChain).subscribe(
                 () -> policyChain.doNext(request, response),
-                error -> policyChain.failWith(PolicyResult.failure(error.getMessage()))
+                error -> policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"))
         );
 
     }
@@ -118,15 +118,16 @@ public class DigitalSignPolicy {
 //                policyChain.doNext(ctx.request(), ctx.response());
                             } else {
                                 log.error("Digital Signature failed, please contact your administrator");
-                                throw new RuntimeException(response.getPayload());
+                                throw new Error(response.getPayload());
 //                        policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
                             }
-                        }).doOnError(error -> {
-                            log.error("GRAOU");
-                            log.error(error.getMessage());
-                            log.error("tutu");
-                            log.error(error.getLocalizedMessage());
                         })
+//                        .doOnError(error -> {
+//                            log.error("GRAOU");
+//                            log.error(error.getMessage());
+//                            log.error("tutu");
+//                            log.error(error.getLocalizedMessage());
+//                        })
         );
     }
 
