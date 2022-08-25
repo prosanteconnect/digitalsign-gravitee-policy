@@ -97,7 +97,9 @@ public class DigitalSignPolicy {
         DigitalSignResource<?> signingResource = getDigitalSignResource(ctx);
 
         if (signingResource == null) {
-            policyChain.failWith(PolicyResult.failure("No Signing resource named " + configuration.getResourceName() + " available"));
+//            return Completable.complete();
+            return Single.error(new Throwable("No Signing resource named " + configuration.getResourceName() + " available")).ignoreElement();
+//            policyChain.failWith(PolicyResult.failure("No Signing resource named " + configuration.getResourceName() + " available"));
         }
 
         Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter ->
@@ -112,10 +114,10 @@ public class DigitalSignPolicy {
 
                 String signedDocKey = SIGNED_PREFIX + configuration.getDocToSignKey();
                 ctx.setAttribute(signedDocKey, cleanXML(signedDoc));
-                policyChain.doNext(ctx.request(), ctx.response());
+//                policyChain.doNext(ctx.request(), ctx.response());
             } else {
                 log.error("Digital Signature failed, please contact your administrator");
-                policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
+//                policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
             }
         }));
     }
