@@ -49,7 +49,7 @@ public class DigitalSignPolicy {
         }
         return handleSignature(executionContext, configuration, docToSignBytes, policyChain).subscribe(
                 () -> policyChain.doNext(request, response),
-                error -> policyChain.failWith(PolicyResult.failure("something wrong happened"))
+                error -> policyChain.failWith(PolicyResult.failure(error.getMessage()))
         );
 
     }
@@ -105,21 +105,25 @@ public class DigitalSignPolicy {
         Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter ->
                 signingResource.signWithXmldsig(docToSignBytes, emitter::onSuccess));
 
-        return Completable.fromSingle(digitalSignResponse.doOnSuccess(response -> {
-            if (response.isSuccess()) {
-                Gson gson = new Gson();
-                String responseBody = response.getPayload();
-                EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
-                String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne()));
+        return Completable.fromSingle(digitalSignResponse
+                .doOnSuccess(response -> {
+                    if (response.isSuccess()) {
+                        Gson gson = new Gson();
+                        String responseBody = response.getPayload();
+                        EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
+                        String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne()));
 
-                String signedDocKey = SIGNED_PREFIX + configuration.getDocToSignKey();
-                ctx.setAttribute(signedDocKey, cleanXML(signedDoc));
+                        String signedDocKey = SIGNED_PREFIX + configuration.getDocToSignKey();
+                        ctx.setAttribute(signedDocKey, cleanXML(signedDoc));
 //                policyChain.doNext(ctx.request(), ctx.response());
-            } else {
-                log.error("Digital Signature failed, please contact your administrator");
-                policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
-            }
-        }));
+                    } else {
+                        log.error("Digital Signature failed, please contact your administrator");
+                        throw new Throwable("toto");
+
+//                        policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
+                    }
+                }).doOnError(error -> log.error("GRAOU"))
+        );
     }
 
     public static String cleanXML(String xml) {
