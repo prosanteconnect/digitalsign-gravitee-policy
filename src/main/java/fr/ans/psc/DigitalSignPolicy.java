@@ -122,7 +122,12 @@ public class DigitalSignPolicy {
 
 //                        policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
                     }
-                }).doOnError(error -> log.error("GRAOU"))
+                }).doOnError(error -> {
+                    log.error("GRAOU");
+                    log.error(error.getMessage());
+                    log.error("tutu");
+                    log.error(error.getLocalizedMessage());
+                })
         );
     }
 
