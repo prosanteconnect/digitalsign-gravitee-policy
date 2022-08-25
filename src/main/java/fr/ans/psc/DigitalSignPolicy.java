@@ -39,15 +39,10 @@ public class DigitalSignPolicy {
     @OnRequest
     public Disposable onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
 
-        byte[] docToSignBytes = null;
-//        try {
-            String docToSignAsString = (String) executionContext.getAttribute(configuration.getDocToSignKey());
-            log.debug(docToSignAsString);
-            docToSignBytes = docToSignAsString.getBytes(StandardCharsets.UTF_8);
-//        } catch (Exception e) {
-//            policyChain.failWith(PolicyResult.failure("Something went wrong with doc signing, please contact your administrator"));
-//        }
-        return handleSignature(executionContext, configuration, docToSignBytes, policyChain).subscribe(
+        String docToSignAsString = (String) executionContext.getAttribute(configuration.getDocToSignKey());
+        log.debug(docToSignAsString);
+        byte[] docToSignBytes = docToSignAsString.getBytes(StandardCharsets.UTF_8);
+        return handleSignature(executionContext, configuration, docToSignBytes).subscribe(
                 () -> policyChain.doNext(request, response),
                 error -> policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"))
         );
@@ -63,7 +58,6 @@ public class DigitalSignPolicy {
                     PolicyResult.failure(HttpStatusCode.INTERNAL_SERVER_ERROR_500, "Not a successful response :-("));
         }
     }
-
 
     private static boolean isASuccessfulResponse(Response response) {
         switch (response.status() / 100) {
@@ -92,42 +86,32 @@ public class DigitalSignPolicy {
 
     private Completable handleSignature(ExecutionContext ctx,
                                         DigitalSignPolicyConfiguration configuration,
-                                        byte[] docToSignBytes,
-                                        PolicyChain policyChain) {
+                                        byte[] docToSignBytes) {
         DigitalSignResource<?> signingResource = getDigitalSignResource(ctx);
 
         if (signingResource == null) {
-//            return Completable.complete();
-            return Single.error(new Throwable("No Signing resource named " + configuration.getResourceName() + " available")).ignoreElement();
-//            policyChain.failWith(PolicyResult.failure("No Signing resource named " + configuration.getResourceName() + " available"));
+            return Single.error(new Throwable("No Signing resource named " + configuration.getResourceName() + " available"))
+                    .ignoreElement();
         }
 
         Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter ->
                 signingResource.signWithXmldsig(docToSignBytes, emitter::onSuccess));
 
         return Completable.fromSingle(digitalSignResponse
-                        .doOnSuccess(response -> {
-                            if (response.isSuccess()) {
-                                Gson gson = new Gson();
-                                String responseBody = response.getPayload();
-                                EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
-                                String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne()));
+                .doOnSuccess(response -> {
+                    if (response.isSuccess()) {
+                        Gson gson = new Gson();
+                        String responseBody = response.getPayload();
+                        EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
+                        String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne()));
 
-                                String signedDocKey = SIGNED_PREFIX + configuration.getDocToSignKey();
-                                ctx.setAttribute(signedDocKey, cleanXML(signedDoc));
-//                policyChain.doNext(ctx.request(), ctx.response());
-                            } else {
-                                log.error("Digital Signature failed, please contact your administrator");
-                                throw new Error(response.getPayload());
-//                        policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
-                            }
-                        })
-//                        .doOnError(error -> {
-//                            log.error("GRAOU");
-//                            log.error(error.getMessage());
-//                            log.error("tutu");
-//                            log.error(error.getLocalizedMessage());
-//                        })
+                        String signedDocKey = SIGNED_PREFIX + configuration.getDocToSignKey();
+                        ctx.setAttribute(signedDocKey, cleanXML(signedDoc));
+                    } else {
+                        log.error("Signature server has rejected request");
+                        throw new Error();
+                    }
+                })
         );
     }
 
