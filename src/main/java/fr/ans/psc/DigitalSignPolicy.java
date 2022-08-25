@@ -18,11 +18,7 @@ import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -32,6 +28,8 @@ public class DigitalSignPolicy {
 
     private static final Logger log = LoggerFactory.getLogger(DigitalSignPolicy.class);
 
+    private final String SIGNED_PREFIX = "signed.";
+
     private DigitalSignPolicyConfiguration configuration;
 
     public DigitalSignPolicy(DigitalSignPolicyConfiguration configuration) {
@@ -39,15 +37,12 @@ public class DigitalSignPolicy {
     }
 
     @OnRequest
-    public Disposable onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) throws IOException {
+    public Disposable onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
 
-        File docToSignFile = null;
         byte[] docToSignBytes = null;
         try {
             String docToSignAsString = (String) executionContext.getAttribute(configuration.getDocToSignKey());
-            // TODO remove debug logs
-            System.out.println("doc to sign :");
-            System.out.println(docToSignAsString);
+            log.debug(docToSignAsString);
             docToSignBytes = docToSignAsString.getBytes(StandardCharsets.UTF_8);
         } catch (Exception e) {
             policyChain.failWith(PolicyResult.failure("Something went wrong with doc signing, please contact your administrator"));
@@ -85,9 +80,7 @@ public class DigitalSignPolicy {
         if (configuration.getResourceName() == null) {
             return null;
         }
-        //TODO rm debug log
-        System.out.println("configuration.getResourceName = " + configuration.getResourceName());
-        System.out.println("template resource = " + ctx.getTemplateEngine().getValue(configuration.getResourceName(), String.class));
+
         return ctx
                 .getComponent(ResourceManager.class)
                 .getResource(
@@ -96,42 +89,31 @@ public class DigitalSignPolicy {
                 );
     }
 
-    private Completable handleSignature(ExecutionContext ctx, DigitalSignPolicyConfiguration configuration, byte[] docToSignBytes, PolicyChain policyChain) {
+    private Completable handleSignature(ExecutionContext ctx,
+                                        DigitalSignPolicyConfiguration configuration,
+                                        byte[] docToSignBytes,
+                                        PolicyChain policyChain) {
         DigitalSignResource<?> signingResource = getDigitalSignResource(ctx);
-        //TODO rm debug log
-        System.out.println(signingResource == null ? "DIGITAL SIGN RESOURCE IS NULL" : "SIGN RESOURCE IS NOT NULL");
+
         if (signingResource == null) {
             policyChain.failWith(PolicyResult.failure("No Signing resource named " + configuration.getResourceName() + " available"));
         }
 
-        System.out.println("calling resource...");
-        signingResource.signWithXmldsig(docToSignBytes, digitalSignResponse -> {
-            System.out.println("result = " + digitalSignResponse.isSuccess());
-            System.out.println("rapport de signature :");
-            System.out.println(digitalSignResponse.getPayload());
-        });
-        Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter -> signingResource.signWithXmldsig(docToSignBytes, emitter::onSuccess));
+        Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter ->
+                signingResource.signWithXmldsig(docToSignBytes, emitter::onSuccess));
 
         return Completable.fromSingle(digitalSignResponse.doOnSuccess(response -> {
             if (response.isSuccess()) {
-                //TODO rm debug log
-                System.out.println("signing successful");
                 Gson gson = new Gson();
-                String jsonReport = response.getPayload();
-                EsignSanteSignatureReport report = gson.fromJson(jsonReport, EsignSanteSignatureReport.class);
-                // TODO extract signed doc
+                String responseBody = response.getPayload();
+                EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
                 String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne()));
 
-
-                System.out.println("CHECK THIS OUT :");
-                System.out.println(cleanXML(signedDoc));
-
-                String signedDocKey = "signed." + configuration.getDocToSignKey();
+                String signedDocKey = SIGNED_PREFIX + configuration.getDocToSignKey();
                 ctx.setAttribute(signedDocKey, cleanXML(signedDoc));
                 policyChain.doNext(ctx.request(), ctx.response());
             } else {
-                //TODO rm debug log
-                System.out.println("signing unsuccessful");
+                log.error("Digital Signature failed, please contact your administrator");
                 policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
             }
         }));
