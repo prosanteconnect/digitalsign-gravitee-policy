@@ -90,8 +90,8 @@ public class DigitalSignPolicy {
         DigitalSignResource<?> signingResource = getDigitalSignResource(ctx);
 
         if (signingResource == null) {
-            return Single.error(new Throwable("No Signing resource named " + configuration.getResourceName() + " available"))
-                    .ignoreElement();
+            log.error("No Signing resource named {} available", configuration.getResourceName());
+            return Single.error(new Error()).ignoreElement();
         }
 
         Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter ->
