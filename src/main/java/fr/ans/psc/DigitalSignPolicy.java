@@ -118,8 +118,7 @@ public class DigitalSignPolicy {
 //                policyChain.doNext(ctx.request(), ctx.response());
                             } else {
                                 log.error("Digital Signature failed, please contact your administrator");
-                                Exception toto = new Exception(response.getPayload());
-                                throw new Throwable(toto);
+                                throw new RuntimeException(response.getPayload());
 //                        policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
                             }
                         }).doOnError(error -> {
