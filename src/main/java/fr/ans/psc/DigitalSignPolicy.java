@@ -103,7 +103,7 @@ public class DigitalSignPolicy {
                         Gson gson = new Gson();
                         String responseBody = response.getPayload();
                         EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
-                        String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne()));
+                        String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne())).replaceAll("&#13;", "");
 
                         String signedDocKey = SIGNED_PREFIX + configuration.getDocToSignKey();
                         ctx.setAttribute(signedDocKey, cleanXML(signedDoc));
