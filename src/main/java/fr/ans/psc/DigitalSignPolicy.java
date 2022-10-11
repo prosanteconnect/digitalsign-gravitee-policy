@@ -106,6 +106,8 @@ public class DigitalSignPolicy {
                         String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne()));
 
                         String signedDocKey = SIGNED_PREFIX + configuration.getDocToSignKey();
+                        log.error("signed.vihf.token.payload");
+                        log.error(signedDoc);
                         ctx.setAttribute(signedDocKey, cleanXML(signedDoc));
                     } else {
                         log.error("Signature server has rejected request");
