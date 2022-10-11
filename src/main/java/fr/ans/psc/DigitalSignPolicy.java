@@ -108,21 +108,12 @@ public class DigitalSignPolicy {
                         String signedDocKey = SIGNED_PREFIX + configuration.getDocToSignKey();
                         log.error("signed.vihf.token.payload");
                         log.error(signedDoc);
-                        ctx.setAttribute(signedDocKey, cleanXML(signedDoc));
+                        ctx.setAttribute(signedDocKey, signedDoc);
                     } else {
                         log.error("Signature server has rejected request");
                         throw new Error();
                     }
                 })
         );
-    }
-
-    public static String cleanXML(String xml) {
-        if (xml == null) {
-            return xml;
-        } else {
-            return xml.replaceAll("(<!--.*-->)", "").replaceAll(
-                    "(<\\?xml.*\\?>)", "");
-        }
     }
 }
