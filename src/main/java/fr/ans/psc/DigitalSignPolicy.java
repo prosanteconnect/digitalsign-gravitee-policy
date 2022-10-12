@@ -1,9 +1,7 @@
 package fr.ans.psc;
 
 import com.google.gson.Gson;
-import com.sun.org.apache.xerces.internal.parsers.XMLParser;
 import fr.ans.psc.esignsante.model.EsignSanteSignatureReport;
-import freemarker.core.OutputFormat;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -11,6 +9,7 @@ import io.gravitee.gateway.api.Response;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
 import io.gravitee.policy.api.annotations.OnRequest;
+import io.gravitee.policy.api.annotations.OnRequestContent;
 import io.gravitee.policy.api.annotations.OnResponse;
 import io.gravitee.resource.api.ResourceManager;
 import io.reactivex.rxjava3.core.Completable;
@@ -19,8 +18,6 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
@@ -36,8 +33,8 @@ public class DigitalSignPolicy {
         this.configuration = configuration;
     }
 
-    @OnRequest
-    public Disposable onRequest(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
+    @OnRequestContent
+    public Disposable onRequestContent(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
 
         String docToSignAsString = (String) executionContext.getAttribute(configuration.getDocToSignKey());
         log.debug(docToSignAsString);
@@ -95,7 +92,7 @@ public class DigitalSignPolicy {
         }
 
         Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter ->
-                signingResource.signWithXmldsig(docToSignBytes, emitter::onSuccess));
+                signingResource.sign(docToSignBytes, configuration.getAdditionalParameters(), emitter::onSuccess));
 
         return Completable.fromSingle(digitalSignResponse
                 .doOnSuccess(response -> {
