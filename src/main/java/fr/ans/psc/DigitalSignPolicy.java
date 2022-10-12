@@ -37,13 +37,13 @@ public class DigitalSignPolicy {
     public Disposable onRequestContent(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
 
         String docToSignAsString = (String) executionContext.getAttribute(configuration.getDocToSignKey());
-        log.debug(docToSignAsString);
+        log.error("docToSignKey : {}", configuration.getDocToSignKey());
+        log.error("docToSignAsString : {}", docToSignAsString);
         byte[] docToSignBytes = docToSignAsString.getBytes(StandardCharsets.UTF_8);
         return handleSignature(executionContext, configuration, docToSignBytes).subscribe(
                 () -> policyChain.doNext(request, response),
                 error -> policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"))
         );
-
     }
 
     @OnResponse
