@@ -8,6 +8,7 @@ import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
 import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.handler.Handler;
 import io.gravitee.gateway.api.http.stream.TransformableRequestStreamBuilder;
 import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.policy.api.PolicyChain;
@@ -20,6 +21,8 @@ import io.reactivex.rxjava3.core.Single;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Base64;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -31,6 +34,8 @@ public class DigitalSignPolicy {
     private final String SIGNED_PREFIX = "signed.";
 
     private DigitalSignPolicyConfiguration configuration;
+
+    private ByteArrayOutputStream baos;
 
     public DigitalSignPolicy(DigitalSignPolicyConfiguration configuration) {
         this.configuration = configuration;
@@ -142,9 +147,15 @@ public class DigitalSignPolicy {
                 String responseBody = dgResponse.getPayload();
                 Gson gson = new Gson();
                 EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
-                signedDoc.set(new String(Base64.getDecoder().decode(report.getDocSigne())));
+//                signedDoc.set(new String(Base64.getDecoder().decode(report.getDocSigne())));
+                baos = new ByteArrayOutputStream(Base64.getDecoder().decode(report.getDocSigne()).length);
+                try {
+                    baos.write(Base64.getDecoder().decode(report.getDocSigne()));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             });
-            return Buffer.buffer(signedDoc.get());
+            return Buffer.buffer(baos.toString());
         };
     }
 }
