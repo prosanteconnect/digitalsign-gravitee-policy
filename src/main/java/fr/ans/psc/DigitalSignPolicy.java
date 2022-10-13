@@ -145,10 +145,16 @@ public class DigitalSignPolicy {
                 signedDoc.set(new String(Base64.getDecoder().decode(report.getDocSigne())));
                 String leon = "leon";
             });
-                if (signedDoc.get() == null) {
-                    policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
-                }
-                return Buffer.buffer(signedDoc.get());
+
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (signedDoc.get() == null) {
+                policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
+            }
+            return Buffer.buffer(signedDoc.get());
         };
     }
 }
