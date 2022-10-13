@@ -143,6 +143,7 @@ public class DigitalSignPolicy {
                 Gson gson = new Gson();
                 EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
                 signedDoc.set(new String(Base64.getDecoder().decode(report.getDocSigne())));
+                String leon = "leon";
             });
                 if (signedDoc.get() == null) {
                     policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
