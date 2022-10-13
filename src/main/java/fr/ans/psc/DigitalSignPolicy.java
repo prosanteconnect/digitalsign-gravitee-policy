@@ -3,23 +3,26 @@ package fr.ans.psc;
 import com.google.gson.Gson;
 import fr.ans.psc.esignsante.model.EsignSanteSignatureReport;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.http.MediaType;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
 import io.gravitee.gateway.api.Response;
+import io.gravitee.gateway.api.buffer.Buffer;
+import io.gravitee.gateway.api.http.stream.TransformableRequestStreamBuilder;
+import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.PolicyResult;
-import io.gravitee.policy.api.annotations.OnRequest;
 import io.gravitee.policy.api.annotations.OnRequestContent;
 import io.gravitee.policy.api.annotations.OnResponse;
 import io.gravitee.resource.api.ResourceManager;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
-import io.reactivex.rxjava3.disposables.Disposable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 public class DigitalSignPolicy {
 
@@ -34,19 +37,26 @@ public class DigitalSignPolicy {
     }
 
     @OnRequestContent
-    public Disposable onRequestContent(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
+    public ReadWriteStream onRequestContent(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
+
+        return TransformableRequestStreamBuilder
+                .on(request)
+                .chain(policyChain)
+                .contentType(MediaType.APPLICATION_XML)
+                .transform(sign(executionContext, configuration, policyChain))
+                .build();
 
 //        String docToSignAsString = executionContext.getTemplateEngine().getValue(configuration.getDocToSignKey(), String.class);
-        String docToSignAsString = (String) executionContext.getTemplateEngine().getTemplateContext().lookupVariable(configuration.getDocToSignKey());
-
-        log.error("docToSignKey : {}", configuration.getDocToSignKey());
-        log.error("docToSignAsString : {}", docToSignAsString);
-
-        byte[] docToSignBytes = docToSignAsString.getBytes(StandardCharsets.UTF_8);
-        return handleSignature(executionContext, configuration, docToSignBytes).subscribe(
-                () -> policyChain.doNext(request, response),
-                error -> policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"))
-        );
+//        String docToSignAsString = (String) executionContext.getTemplateEngine().getTemplateContext().lookupVariable(configuration.getDocToSignKey());
+//
+//        log.error("docToSignKey : {}", configuration.getDocToSignKey());
+//        log.error("docToSignAsString : {}", docToSignAsString);
+//
+//        byte[] docToSignBytes = docToSignAsString.getBytes(StandardCharsets.UTF_8);
+//        return handleSignature(executionContext, configuration, docToSignBytes).subscribe(
+//                () -> policyChain.doNext(request, response),
+//                error -> policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"))
+//        );
     }
 
     @OnResponse
@@ -115,5 +125,29 @@ public class DigitalSignPolicy {
                     }
                 })
         );
+    }
+
+    private Function<Buffer, Buffer> sign(ExecutionContext executionContext, DigitalSignPolicyConfiguration configuration, PolicyChain policyChain) {
+        return input -> {
+            AtomicReference<String> signedDoc = null;
+            DigitalSignResource<?> signingResource = getDigitalSignResource(executionContext);
+
+            if (signingResource == null) {
+                log.error("No Signing resource named {} available", configuration.getResourceName());
+//                return Single.error(new Error()).ignoreElement();
+            }
+
+            assert signingResource != null;
+            signingResource.sign(input.getBytes(), configuration.getAdditionalParameters(), (dgResponse) -> {
+                String responseBody = dgResponse.getPayload();
+                Gson gson = new Gson();
+                EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
+                signedDoc.set(new String(Base64.getDecoder().decode(report.getDocSigne())));
+            });
+                if (signedDoc.get() == null) {
+                    policyChain.failWith(PolicyResult.failure("Digital Signature failed, please contact your administrator"));
+                }
+                return Buffer.buffer(signedDoc.get());
+        };
     }
 }
