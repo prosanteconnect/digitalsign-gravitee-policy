@@ -36,9 +36,12 @@ public class DigitalSignPolicy {
     @OnRequestContent
     public Disposable onRequestContent(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
 
-        String docToSignAsString = executionContext.getTemplateEngine().getValue(configuration.getDocToSignKey(), String.class);
+//        String docToSignAsString = executionContext.getTemplateEngine().getValue(configuration.getDocToSignKey(), String.class);
+        String docToSignAsString = (String) executionContext.getTemplateEngine().getTemplateContext().lookupVariable(configuration.getDocToSignKey());
+
         log.error("docToSignKey : {}", configuration.getDocToSignKey());
         log.error("docToSignAsString : {}", docToSignAsString);
+
         byte[] docToSignBytes = docToSignAsString.getBytes(StandardCharsets.UTF_8);
         return handleSignature(executionContext, configuration, docToSignBytes).subscribe(
                 () -> policyChain.doNext(request, response),
