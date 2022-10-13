@@ -144,10 +144,12 @@ public class DigitalSignPolicy {
                 EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
                 signedDoc.set(new String(Base64.getDecoder().decode(report.getDocSigne())));
             });
-            try {
-                Thread.sleep(60000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            while (signedDoc.get() == null) {
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
             }
             return Buffer.buffer(signedDoc.get());
         };
