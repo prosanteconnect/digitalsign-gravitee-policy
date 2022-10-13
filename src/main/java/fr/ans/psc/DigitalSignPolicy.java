@@ -129,7 +129,7 @@ public class DigitalSignPolicy {
 
     private Function<Buffer, Buffer> sign(ExecutionContext executionContext, DigitalSignPolicyConfiguration configuration, PolicyChain policyChain) {
         return input -> {
-            AtomicReference<String> signedDoc = null;
+            AtomicReference<String> signedDoc = new AtomicReference<>();
             DigitalSignResource<?> signingResource = getDigitalSignResource(executionContext);
 
             if (signingResource == null) {
