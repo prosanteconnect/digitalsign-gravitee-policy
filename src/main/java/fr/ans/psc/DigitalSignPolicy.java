@@ -141,18 +141,19 @@ public class DigitalSignPolicy {
             }
 
             assert signingResource != null;
-            signingResource.sign(input.getBytes(), configuration.getAdditionalParameters(), (dgResponse) -> {
-                String responseBody = dgResponse.getPayload();
-                Gson gson = new Gson();
-                EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
-//                signedDoc.set(new String(Base64.getDecoder().decode(report.getDocSigne())));
-
-                try {
-                    baos.write(Base64.getDecoder().decode(report.getDocSigne()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
+//            signingResource.sign(input.getBytes(), configuration.getAdditionalParameters(), (dgResponse) -> {
+//                String responseBody = dgResponse.getPayload();
+//                Gson gson = new Gson();
+//                EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
+////                signedDoc.set(new String(Base64.getDecoder().decode(report.getDocSigne())));
+//
+//                try {
+//                    baos.write(Base64.getDecoder().decode(report.getDocSigne()));
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//            });
+            baos.write(Byte.parseByte("tetststet"));
             return Buffer.buffer(baos.toString());
         };
     }
