@@ -35,8 +35,6 @@ public class DigitalSignPolicy {
 
     private DigitalSignPolicyConfiguration configuration;
 
-    private ByteArrayOutputStream baos;
-
     public DigitalSignPolicy(DigitalSignPolicyConfiguration configuration) {
         this.configuration = configuration;
     }
@@ -48,7 +46,7 @@ public class DigitalSignPolicy {
                 .on(request)
                 .chain(policyChain)
                 .contentType(MediaType.APPLICATION_XML)
-                .transform(sign(executionContext, configuration, policyChain))
+                .transform(sign(executionContext, configuration, new ByteArrayOutputStream()))
                 .build();
 
 //        String docToSignAsString = executionContext.getTemplateEngine().getValue(configuration.getDocToSignKey(), String.class);
@@ -132,7 +130,7 @@ public class DigitalSignPolicy {
         );
     }
 
-    private Function<Buffer, Buffer> sign(ExecutionContext executionContext, DigitalSignPolicyConfiguration configuration, PolicyChain policyChain) {
+    private Function<Buffer, Buffer> sign(ExecutionContext executionContext, DigitalSignPolicyConfiguration configuration, final ByteArrayOutputStream baos) {
         return input -> {
             AtomicReference<String> signedDoc = new AtomicReference<>();
             DigitalSignResource<?> signingResource = getDigitalSignResource(executionContext);
@@ -148,7 +146,7 @@ public class DigitalSignPolicy {
                 Gson gson = new Gson();
                 EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
 //                signedDoc.set(new String(Base64.getDecoder().decode(report.getDocSigne())));
-                baos = new ByteArrayOutputStream(Base64.getDecoder().decode(report.getDocSigne()).length);
+
                 try {
                     baos.write(Base64.getDecoder().decode(report.getDocSigne()));
                 } catch (IOException e) {
