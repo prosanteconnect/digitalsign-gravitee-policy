@@ -153,7 +153,11 @@ public class DigitalSignPolicy {
 //                    e.printStackTrace();
 //                }
 //            });
-            baos.write(Byte.parseByte("tetststet"));
+            try {
+                baos.write("tetststet".getBytes());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             return Buffer.buffer(baos.toString());
         };
     }
