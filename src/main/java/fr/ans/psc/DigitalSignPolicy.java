@@ -46,7 +46,7 @@ public class DigitalSignPolicy {
                 .on(request)
                 .chain(policyChain)
                 .contentType(MediaType.APPLICATION_XML)
-                .transform(sign(executionContext, configuration, new ByteArrayOutputStream()))
+                .transform(sign(executionContext, configuration, new ByteArrayOutputStream(), policyChain))
                 .build();
 
 //        String docToSignAsString = executionContext.getTemplateEngine().getValue(configuration.getDocToSignKey(), String.class);
@@ -97,67 +97,66 @@ public class DigitalSignPolicy {
                 );
     }
 
-    private Completable handleSignature(ExecutionContext ctx,
-                                        DigitalSignPolicyConfiguration configuration,
-                                        byte[] docToSignBytes) {
-        DigitalSignResource<?> signingResource = getDigitalSignResource(ctx);
+//    private Completable handleSignature(ExecutionContext ctx,
+//                                        DigitalSignPolicyConfiguration configuration,
+//                                        byte[] docToSignBytes) {
+//        DigitalSignResource<?> signingResource = getDigitalSignResource(ctx);
+//
+//        if (signingResource == null) {
+//            log.error("No Signing resource named {} available", configuration.getResourceName());
+//            return Single.error(new Error()).ignoreElement();
+//        }
+//
+//        Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter ->
+//                signingResource.sign(docToSignBytes, configuration.getAdditionalParameters(), emitter::onSuccess));
+//
+//        return Completable.fromSingle(digitalSignResponse
+//                .doOnSuccess(response -> {
+//                    if (response.isSuccess()) {
+//                        Gson gson = new Gson();
+//                        String responseBody = response.getPayload();
+//                        EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
+//                        String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne()));
+//
+//                        String signedDocKey = SIGNED_PREFIX + configuration.getDocToSignKey();
+//                        log.error("signed.vihf.token.payload");
+//                        log.error(signedDoc);
+//                        ctx.setAttribute(signedDocKey, signedDoc);
+//                    } else {
+//                        log.error("Signature server has rejected request");
+//                        throw new Error();
+//                    }
+//                })
+//        );
+//    }
 
-        if (signingResource == null) {
-            log.error("No Signing resource named {} available", configuration.getResourceName());
-            return Single.error(new Error()).ignoreElement();
-        }
-
-        Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter ->
-                signingResource.sign(docToSignBytes, configuration.getAdditionalParameters(), emitter::onSuccess));
-
-        return Completable.fromSingle(digitalSignResponse
-                .doOnSuccess(response -> {
-                    if (response.isSuccess()) {
-                        Gson gson = new Gson();
-                        String responseBody = response.getPayload();
-                        EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
-                        String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne()));
-
-                        String signedDocKey = SIGNED_PREFIX + configuration.getDocToSignKey();
-                        log.error("signed.vihf.token.payload");
-                        log.error(signedDoc);
-                        ctx.setAttribute(signedDocKey, signedDoc);
-                    } else {
-                        log.error("Signature server has rejected request");
-                        throw new Error();
-                    }
-                })
-        );
-    }
-
-    private Function<Buffer, Buffer> sign(ExecutionContext executionContext, DigitalSignPolicyConfiguration configuration, final ByteArrayOutputStream baos) {
+    private Function<Buffer, Buffer> sign(ExecutionContext executionContext, DigitalSignPolicyConfiguration configuration,
+                                          final ByteArrayOutputStream baos, PolicyChain policyChain) {
         return input -> {
             AtomicReference<String> signedDoc = new AtomicReference<>();
             DigitalSignResource<?> signingResource = getDigitalSignResource(executionContext);
 
             if (signingResource == null) {
                 log.error("No Signing resource named {} available", configuration.getResourceName());
-//                return Single.error(new Error()).ignoreElement();
+                policyChain.failWith(PolicyResult.failure("Unable to sign document, please contact your administrator"));
             }
 
             assert signingResource != null;
-            signingResource.sign(input.getBytes(), configuration.getAdditionalParameters(), (dgResponse) -> {
-                String responseBody = dgResponse.getPayload();
-                Gson gson = new Gson();
-                EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
-//                signedDoc.set(new String(Base64.getDecoder().decode(report.getDocSigne())));
+            DigitalSignResponse digitalSignResponse = signingResource.sign(input.getBytes(), configuration.getAdditionalParameters());
 
-                try {
-                    baos.write(Base64.getDecoder().decode(report.getDocSigne()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            });
-//            try {
-//                baos.write("tetststet".getBytes());
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
+            if(!digitalSignResponse.isSuccess()) {
+                log.error("Digital Signature failed for");
+                policyChain.failWith(PolicyResult.failure("Unable to sign document, please contact your administrator"));
+            }
+
+            Gson gson = new Gson();
+            String responseBody = digitalSignResponse.getPayload();
+            EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
+            try {
+                baos.write(Base64.getDecoder().decode(report.getDocSigne()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
             return Buffer.buffer(baos.toString());
         };
     }
