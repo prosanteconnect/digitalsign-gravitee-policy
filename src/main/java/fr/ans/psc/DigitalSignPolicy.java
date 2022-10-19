@@ -69,14 +69,13 @@ public class DigitalSignPolicy {
             }
 
             assert signingResource != null;
-            signingResource.sign(input.getBytes(), configuration.getAdditionalParameters(), (dgResponse) -> {
-                String responseBody = dgResponse.getPayload();
+            DigitalSignResponse response = signingResource.sign(input.getBytes(), configuration.getAdditionalParameters());
+                String responseBody = response.getPayload();
                 Gson gson = new Gson();
                 EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
                 signedDoc.set(new String(Base64.getDecoder().decode(report.getDocSigne())));
-                executionContext.setAttribute("signed.body", new String(Base64.getDecoder().decode(report.getDocSigne())));
-            });
-            return Buffer.buffer("");
+
+            return Buffer.buffer(signedDoc.get());
         };
     }
 }
