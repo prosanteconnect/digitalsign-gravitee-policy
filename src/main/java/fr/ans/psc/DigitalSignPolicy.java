@@ -20,6 +20,7 @@ import io.gravitee.gateway.api.stream.ReadWriteStream;
 import io.gravitee.policy.api.PolicyChain;
 import io.gravitee.policy.api.annotations.OnRequestContent;
 import io.gravitee.resource.api.ResourceManager;
+import io.vertx.ext.web.handler.HttpException;
 
 public class DigitalSignPolicy {
 
@@ -31,7 +32,8 @@ public class DigitalSignPolicy {
         this.configuration = configuration;
     }
 
-    @OnRequestContent
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	@OnRequestContent
     public ReadWriteStream onRequestContent(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
 
         return TransformableRequestStreamBuilder
@@ -70,11 +72,14 @@ public class DigitalSignPolicy {
 
             assert signingResource != null;
             DigitalSignResponse response = signingResource.sign(input.getBytes(), configuration.getAdditionalParameters());
-                String responseBody = response.getPayload();
+            if (response.getThrowable() == null) {   
+            	String responseBody = response.getPayload();
                 Gson gson = new Gson();
                 EsignSanteSignatureReport report = gson.fromJson(responseBody, EsignSanteSignatureReport.class);
                 signedDoc.set(new String(Base64.getDecoder().decode(report.getDocSigne())));
-
+            }else {
+            	throw new HttpException(500, response.getThrowable());
+            }
             return Buffer.buffer(signedDoc.get());
         };
     }
