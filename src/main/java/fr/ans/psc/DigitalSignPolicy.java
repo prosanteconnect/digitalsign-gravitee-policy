@@ -71,7 +71,7 @@ public class DigitalSignPolicy {
             }
 
             assert signingResource != null;
-            DigitalSignResponse response = signingResource.sign(input.getBytes(), configuration.getAdditionalParameters());
+            DigitalSignResponse response = signingResource.sign(input.getBytes());
             if (response.getThrowable() == null) {   
             	String responseBody = response.getPayload();
                 Gson gson = new Gson();
