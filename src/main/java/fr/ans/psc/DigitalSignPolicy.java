@@ -32,7 +32,7 @@ public class DigitalSignPolicy {
         this.configuration = configuration;
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+  @SuppressWarnings({ "rawtypes", "unchecked" })
 	@OnRequestContent
     public ReadWriteStream onRequestContent(Request request, Response response, ExecutionContext executionContext, PolicyChain policyChain) {
 

@@ -110,9 +110,7 @@
 			<artifactId>junit</artifactId>
 			<scope>test</scope>
 		</dependency>
-
 	</dependencies>
-
 	<build>
 		<resources>
 			<resource>
@@ -120,7 +118,6 @@
 				<filtering>true</filtering>
 			</resource>
 		</resources>
-
 		<plugins>
 			<plugin>
 				<groupId>io.gravitee.maven.plugins</groupId>
@@ -205,5 +202,4 @@
 			<url>https://maven.pkg.github.com/prosanteconnect/digitalsign-gravitee-policy</url>
 		</repository>
 	</distributionManagement>
-
 </project>
