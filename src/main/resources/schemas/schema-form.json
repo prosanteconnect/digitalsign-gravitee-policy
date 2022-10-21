@@ -14,44 +14,6 @@
         "placeholder": "digital-signature-resource-name"
       },
       "default" : ""
-    },
-    "docToSignKey" : {
-      "title" : "Document à signer",
-      "description" :  "Clé du document à signer à requêter dans le contexte Gravitee",
-      "type" : "string",
-      "default" : "",
-      "x-schema-form": {
-        "expression-language": true
-      }
-    },
-    "additionalParameters" : {
-      "type": "array",
-      "title": "Paramètres additionnels",
-      "items": {
-        "type" : "object",
-        "id" : "urn:jsonschema:fr:ans:psc:AdditionalParameter",
-        "title": "Paramètre",
-        "properties" : {
-          "name" : {
-            "title": "NOM",
-            "description": "Nom du paramètre",
-            "type" : "string",
-            "pattern" : "^\\S*$",
-            "validationMessage": {
-              "202": "Le nom ne doit pas contenir d'espaces."
-            }
-          },
-          "value" : {
-            "title": "VALEUR",
-            "description": "Valeur du paramètre",
-            "type" : "string"
-          }
-        },
-        "required": [
-          "name",
-          "value"
-        ]
-      }
     }
   }
 }
