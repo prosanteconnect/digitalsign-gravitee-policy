@@ -94,6 +94,7 @@
 			<groupId>io.gravitee.apim.gateway</groupId>
 			<artifactId>gravitee-apim-gateway-resource</artifactId>
 			<version>3.15.9</version>
+			<scope>provided</scope>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/com.google.code.gson/gson -->
@@ -172,5 +173,17 @@
 		</plugins>
 
 	</build>
+	<distributionManagement>
+		<snapshotRepository>
+			<id>github</id>
+			<name>GitHub digitalsign-gravitee-policy Apache Maven Packages</name>
+			<url>https://maven.pkg.github.com/prosanteconnect/digitalsign-gravitee-policy</url>
+		</snapshotRepository>
+		<repository>
+			<id>github</id>
+			<name>GitHub digitalsign-gravitee-policy Apache Maven Packages</name>
+			<url>https://maven.pkg.github.com/prosanteconnect/digitalsign-gravitee-policy</url>
+		</repository>
+	</distributionManagement>
 
 </project>
