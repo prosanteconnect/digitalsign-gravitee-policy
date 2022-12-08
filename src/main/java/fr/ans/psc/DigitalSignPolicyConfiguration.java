@@ -1,5 +1,7 @@
 package fr.ans.psc;
 
+import java.util.List;
+
 import io.gravitee.policy.api.PolicyConfiguration;
 
 public class DigitalSignPolicyConfiguration implements PolicyConfiguration {
@@ -7,6 +9,8 @@ public class DigitalSignPolicyConfiguration implements PolicyConfiguration {
     private String resourceName;
 
     private String docToSignKey;
+    
+    private List<AdditionalParameter> additionalParameters;
 
     public String getResourceName() {
         return resourceName;
@@ -23,4 +27,12 @@ public class DigitalSignPolicyConfiguration implements PolicyConfiguration {
     public void setDocToSignKey(String docToSignKey) {
         this.docToSignKey = docToSignKey;
     }
+
+	public List<AdditionalParameter> getAdditionalParameters() {
+		return additionalParameters;
+	}
+
+	public void setAdditionalParameters(List<AdditionalParameter> additionalParameters) {
+		this.additionalParameters = additionalParameters;
+	}
 }

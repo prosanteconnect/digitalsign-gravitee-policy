@@ -1,9 +1,14 @@
 package fr.ans.psc;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.google.gson.Gson;
-import com.sun.org.apache.xerces.internal.parsers.XMLParser;
+
 import fr.ans.psc.esignsante.model.EsignSanteSignatureReport;
-import freemarker.core.OutputFormat;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.gateway.api.ExecutionContext;
 import io.gravitee.gateway.api.Request;
@@ -16,13 +21,6 @@ import io.gravitee.resource.api.ResourceManager;
 import io.reactivex.rxjava3.core.Completable;
 import io.reactivex.rxjava3.core.Single;
 import io.reactivex.rxjava3.disposables.Disposable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 
 public class DigitalSignPolicy {
 
@@ -95,7 +93,7 @@ public class DigitalSignPolicy {
         }
 
         Single<DigitalSignResponse> digitalSignResponse = Single.create(emitter ->
-                signingResource.signWithXmldsig(docToSignBytes, emitter::onSuccess));
+                signingResource.sign(docToSignBytes,configuration.getAdditionalParameters(), emitter::onSuccess));
 
         return Completable.fromSingle(digitalSignResponse
                 .doOnSuccess(response -> {
@@ -106,8 +104,6 @@ public class DigitalSignPolicy {
                         String signedDoc = new String(Base64.getDecoder().decode(report.getDocSigne()));
 
                         String signedDocKey = SIGNED_PREFIX + configuration.getDocToSignKey();
-                        log.error("signed.vihf.token.payload");
-                        log.error(signedDoc);
                         ctx.setAttribute(signedDocKey, signedDoc);
                     } else {
                         log.error("Signature server has rejected request");
