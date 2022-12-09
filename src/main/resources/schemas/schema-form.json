@@ -19,8 +19,8 @@
       "title" : "Document à signer",
       "description" :  "Clé du document à signer à requêter dans le contexte Gravitee",
       "type" : "string",
-      "default" : ""
-            "x-schema-form": {
+      "default" : "",
+      "x-schema-form": {
         "expression-language": true
       }
     },
@@ -52,9 +52,6 @@
           "value"
         ]
       }
-    }
-  }
-}
     }
   }
 }
